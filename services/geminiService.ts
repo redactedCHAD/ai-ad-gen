@@ -8,7 +8,7 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const buildPrompt = (description: string, styles: string[], hasSecondaryImage: boolean): string => {
+const buildImagePrompt = (description: string, styles: string[], hasSecondaryImage: boolean): string => {
   const styleText = styles.join(', ');
   let prompt = `Regenerate the primary product photo into a high-quality advertisement image.
 
@@ -33,7 +33,7 @@ export const generateStyledImage = async (
 ): Promise<{ imageUrl: string | null; text: string | null }> => {
   const model = 'gemini-2.5-flash-image-preview';
 
-  const prompt = buildPrompt(description, styles, !!secondaryImage);
+  const prompt = buildImagePrompt(description, styles, !!secondaryImage);
 
   const parts: ({ inlineData: { data: string; mimeType: string; }; } | { text: string; })[] = [];
 
@@ -87,10 +87,70 @@ export const generateStyledImage = async (
     return { imageUrl, text };
 
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
+    console.error("Error calling Gemini API for image generation:", error);
     if (error instanceof Error) {
         throw new Error(`Failed to generate image: ${error.message}`);
     }
     throw new Error("An unknown error occurred while communicating with the API.");
   }
+};
+
+export const generateVideoAd = async (
+  image: UploadedFile,
+  videoDescription: string,
+  styles: string[]
+): Promise<string> => {
+    let prompt = `Create a short, cinematic, UGC video ad based on this product. Ad context: "${videoDescription}"`;
+
+    if (styles.length > 0) {
+        prompt += `\nApply these video styles: ${styles.join(', ')}.`;
+    }
+
+    try {
+        let operation = await ai.models.generateVideos({
+            model: 'veo-2.0-generate-001',
+            prompt: prompt,
+            image: {
+                imageBytes: image.base64,
+                mimeType: image.mimeType,
+            },
+            config: {
+                numberOfVideos: 1
+            }
+        });
+
+        while (!operation.done) {
+            // Wait for 10 seconds before polling again
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            operation = await ai.operations.getVideosOperation({ operation: operation });
+        }
+
+        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+
+        if (!downloadLink) {
+            throw new Error("Video generation completed, but no download link was found. The result might be blocked by safety policies.");
+        }
+        
+        // The API key must be appended to the download URI to fetch the video
+        const videoUrlWithKey = `${downloadLink}&key=${process.env.API_KEY}`;
+        
+        const videoResponse = await fetch(videoUrlWithKey);
+        if (!videoResponse.ok) {
+            const errorText = await videoResponse.text();
+            console.error("Failed to download video:", errorText);
+            throw new Error(`Failed to download video: ${videoResponse.statusText}`);
+        }
+        
+        const videoBlob = await videoResponse.blob();
+        const objectUrl = URL.createObjectURL(videoBlob);
+        
+        return objectUrl;
+
+    } catch (error) {
+        console.error("Error calling Gemini API for video generation:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate video: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred while generating the video.");
+    }
 };
