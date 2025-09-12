@@ -1,14 +1,18 @@
-
 import React from 'react';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+    title: React.ReactNode;
+    subtitle: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   return (
-    <header className="text-center">
-      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-        AI Ad Image Generator
+    <header className="mb-8">
+      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-100">
+        {title}
       </h1>
-      <p className="mt-2 text-lg text-gray-400">
-        Transform your product photos into stunning ads with Gemini.
+      <p className="mt-2 text-md text-gray-400">
+        {subtitle}
       </p>
     </header>
   );

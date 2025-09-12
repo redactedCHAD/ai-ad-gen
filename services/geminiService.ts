@@ -154,3 +154,98 @@ export const generateVideoAd = async (
         throw new Error("An unknown error occurred while generating the video.");
     }
 };
+
+interface SocialPostParams {
+    inputType: 'url' | 'topic';
+    inputValue: string;
+    postType: string;
+    tone: string;
+    length: string;
+}
+
+export const generateSocialPost = async (params: SocialPostParams): Promise<string> => {
+    const { inputType, inputValue, postType, tone, length } = params;
+
+    const inputContext = inputType === 'url' 
+        ? `based on the content from this URL: ${inputValue}`
+        : `on the following topic: "${inputValue}"`;
+
+    const prompt = `You are an expert social media marketing assistant.
+    
+    Your task is to generate a compelling "${postType}".
+    
+    The content should be ${inputContext}.
+    
+    Please adhere to the following attributes:
+    - Tone: ${tone}
+    - Length: ${length}
+    
+    Generate the content now. For a blog post, provide a title and body. For other post types, just provide the body.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+
+        const text = response.text;
+        if (!text) {
+            throw new Error("The API returned an empty response. This might be due to safety policies.");
+        }
+        return text;
+    } catch (error) {
+        console.error("Error calling Gemini API for social post generation:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate social post: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred while communicating with the API.");
+    }
+};
+
+export const generateBlogHeroImage = async (blogContent: string): Promise<string> => {
+    try {
+        // Step 1: Generate a descriptive prompt from the blog content
+        const promptForPrompt = `Analyze the following blog post and generate a concise, visually descriptive prompt for an AI image generator to create a relevant hero image. The prompt should be a single sentence or a short phrase focusing on the key visual elements. Only output the prompt itself, with no additional text or labels.
+
+Blog Post:
+---
+${blogContent}
+---
+`;
+        const promptResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: promptForPrompt,
+        });
+
+        const imagePrompt = promptResponse.text;
+        if (!imagePrompt || imagePrompt.trim() === '') {
+            throw new Error("Failed to generate a valid image prompt from the blog post.");
+        }
+
+        // Step 2: Generate the image using the new prompt
+        const imageResponse = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: imagePrompt.trim(),
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: '16:9',
+            },
+        });
+
+        const base64ImageBytes = imageResponse.generatedImages?.[0]?.image?.imageBytes;
+        if (!base64ImageBytes) {
+            throw new Error("Image generation failed or returned no image data. This could be due to safety policies.");
+        }
+        
+        const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
+        return imageUrl;
+
+    } catch (error) {
+        console.error("Error generating blog hero image:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate hero image: ${error.message}`);
+        }
+        throw new Error("An unknown error occurred while generating the hero image.");
+    }
+};

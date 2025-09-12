@@ -72,7 +72,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({ isGenerating, imageUrl,
             <div className="flex-grow flex items-center justify-center w-full">
               <img src={imageUrl} alt="Generated ad" className="max-h-[400px] w-full object-contain rounded-lg shadow-2xl" />
             </div>
-            {text && <p className="text-sm text-gray-400 italic p-2 bg-gray-700 rounded-md self-stretch text-center">{text}</p>}
+            {text && <p className="text-sm text-gray-400 italic p-3 bg-black/30 rounded-md self-stretch text-center">{text}</p>}
             <div className="w-full flex flex-col sm:flex-row gap-2">
                  <Button onClick={handleUseImageForVideo}>
                     🎬 Use this Image to Generate Video
@@ -89,7 +89,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({ isGenerating, imageUrl,
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900/50 rounded-lg p-4 min-h-[300px]">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 rounded-lg p-4 min-h-[300px]">
       {renderContent()}
     </div>
   );
