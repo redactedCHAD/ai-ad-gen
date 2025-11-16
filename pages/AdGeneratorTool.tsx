@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import ImageUploader from '../components/ImageUploader';
@@ -6,7 +7,7 @@ import Button from '../components/Button';
 import GeneratedImage from '../components/GeneratedImage';
 import VideoGenerator from '../components/VideoGenerator';
 import { generateStyledImage, generateVideoAd } from '../services/geminiService';
-import { IMAGE_STYLE_OPTIONS } from '../constants';
+import { IMAGE_STYLE_OPTIONS, ASPECT_RATIO_OPTIONS } from '../constants';
 import type { UploadedFile } from '../types';
 
 interface AdGeneratorToolProps {
@@ -21,6 +22,7 @@ const AdGeneratorTool: React.FC<AdGeneratorToolProps> = ({ onBackToDashboard }) 
   
   // Image Generation State
   const [selectedImageStyles, setSelectedImageStyles] = useState<string[]>([]);
+  const [aspectRatio, setAspectRatio] = useState<string>('1:1');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedText, setGeneratedText] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState<boolean>(false);
@@ -107,7 +109,7 @@ const AdGeneratorTool: React.FC<AdGeneratorToolProps> = ({ onBackToDashboard }) 
 
 
     try {
-      const result = await generateStyledImage(primaryImage, secondaryImage, description, selectedImageStyles);
+      const result = await generateStyledImage(primaryImage, secondaryImage, description, selectedImageStyles, aspectRatio);
       setGeneratedImage(result.imageUrl);
       setGeneratedText(result.text);
     } catch (e) {
@@ -116,7 +118,7 @@ const AdGeneratorTool: React.FC<AdGeneratorToolProps> = ({ onBackToDashboard }) 
     } finally {
       setIsGeneratingImage(false);
     }
-  }, [primaryImage, secondaryImage, description, selectedImageStyles]);
+  }, [primaryImage, secondaryImage, description, selectedImageStyles, aspectRatio]);
   
   const handleSetVideoSource = useCallback((file: UploadedFile) => {
     setVideoSourceImage(file);
@@ -205,6 +207,29 @@ const AdGeneratorTool: React.FC<AdGeneratorToolProps> = ({ onBackToDashboard }) 
                   onStyleToggle={handleImageStyleToggle}
                 />
               </div>
+
+              <div>
+                <p className="text-sm text-gray-400 mb-4">Select an aspect ratio for the output image.</p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                    {ASPECT_RATIO_OPTIONS.map(ratio => {
+                        const isSelected = aspectRatio === ratio;
+                        return (
+                            <button
+                                key={ratio}
+                                onClick={() => setAspectRatio(ratio)}
+                                className={`px-4 py-2.5 rounded-lg text-sm font-semibold text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500
+                                    ${isSelected
+                                        ? 'bg-cyan-500 text-white shadow-md'
+                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    }`}
+                            >
+                                {ratio}
+                            </button>
+                        );
+                    })}
+                </div>
+              </div>
+
               <div className="pt-2">
                 <Button onClick={handleGenerateImage} disabled={!canGenerateImage}>
                   {isGeneratingImage ? 'Generating...' : '✨ Generate Ad Image'}

@@ -8,7 +8,7 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const buildImagePrompt = (description: string, styles: string[], hasSecondaryImage: boolean): string => {
+const buildImagePrompt = (description: string, styles: string[], hasSecondaryImage: boolean, aspectRatio: string): string => {
   const styleText = styles.join(', ');
   let prompt = `Regenerate the primary product photo into a high-quality advertisement image.
 
@@ -20,6 +20,8 @@ Apply these styles: ${styleText}.`;
     prompt += `\n\nUse the secondary image for context (e.g., product in use, environment inspiration) but ensure the final ad focuses on the product from the primary photo.`;
   }
   
+  prompt += `\n\nGenerate the image with a ${aspectRatio} aspect ratio.`;
+
   prompt += `\n\nThe final image should be a professional ad creative with the product as the main subject.`;
 
   return prompt;
@@ -29,11 +31,12 @@ export const generateStyledImage = async (
   primaryImage: UploadedFile,
   secondaryImage: UploadedFile | null,
   description: string,
-  styles: string[]
+  styles: string[],
+  aspectRatio: string
 ): Promise<{ imageUrl: string | null; text: string | null }> => {
   const model = 'gemini-2.5-flash-image-preview';
 
-  const prompt = buildImagePrompt(description, styles, !!secondaryImage);
+  const prompt = buildImagePrompt(description, styles, !!secondaryImage, aspectRatio);
 
   const parts: ({ inlineData: { data: string; mimeType: string; }; } | { text: string; })[] = [];
 

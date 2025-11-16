@@ -12,6 +12,8 @@ export const IMAGE_STYLE_OPTIONS: string[] = [
   'Playful'
 ];
 
+export const ASPECT_RATIO_OPTIONS: string[] = ['1:1', '16:9', '9:16', '4:3', '3:4'];
+
 export const VIDEO_STYLE_OPTIONS: string[] = [
   'Cinematic',
   'Dynamic',
