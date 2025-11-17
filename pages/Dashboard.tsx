@@ -62,7 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavClick }) => {
             <HeroIllustration />
             <div className="text-center pt-8">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
-                    AI-Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Marketing Suite</span>
+                    Content Koala <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Marketing Suite</span>
                 </h1>
                 <p className="mt-6 text-lg max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
                     Your command center for creating stunning ad creatives and compelling social media content. Let's build something amazing.
